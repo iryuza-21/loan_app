@@ -1,25 +1,13 @@
 import streamlit as st
 import pandas as pd
 import numpy as np
-from sklearn.ensemble import RandomForestClassifier
-from sklearn.model_selection import train_test_split
-from sklearn.metrics import accuracy_score
+import pickle
 
-# Load sample data (replace this with your actual data)
-def load_data():
-    data = pd.read_csv('sample_loan_data.csv')  # Ensure your data is in this file
-    return data
-
-# Train a simple RandomForest model (replace this with your actual model training)
-def train_model(data):
-    X = data.drop(columns=['FinalRiskLevel'])
-    y = data['FinalRiskLevel']
-    X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.3, random_state=42)
-    model = RandomForestClassifier()
-    model.fit(X_train, y_train)
-    y_pred = model.predict(X_test)
-    accuracy = accuracy_score(y_test, y_pred)
-    return model, accuracy
+# Load the trained model
+def load_model():
+    with open('predict.pkl', 'rb') as file:
+        model = pickle.load(file)
+    return model
 
 # Predict function
 def predict(model, input_data):
@@ -46,34 +34,34 @@ def main():
     CollateralFlag = st.selectbox("Collateral Flag", ["Yes", "No"])
     TenorLoan1 = st.number_input("Tenor Loan 1", min_value=1, max_value=360, value=12)
     Score = st.number_input("Score", min_value=300, max_value=850, value=700)
+    FinalRiskLevel = st.selectbox("Final Risk Level", ["Low", "Medium", "High"])
 
-    # Create input dataframe
+    # Convert categorical data to numeric data
     input_data = pd.DataFrame({
-        'Gender': [Gender],
+        'Gender': [1 if Gender == "Male" else 0],
         'Age': [Age],
-        'MaritalStatus': [MaritalStatus],
-        'Type': [Type],
-        'BusinessOwner': [BusinessOwner],
+        'MaritalStatus': [1 if MaritalStatus == "Married" else 0],
+        'Type': [1 if Type == "Business" else 0],
+        'BusinessOwner': [1 if BusinessOwner == "Yes" else 0],
         'BusinessExpYear': [BusinessExpYear],
-        'HaveMobileNo': [HaveMobileNo],
+        'HaveMobileNo': [1 if HaveMobileNo == "Yes" else 0],
         'AppliedAmount': [AppliedAmount],
         'TotalCreditAmount': [TotalCreditAmount],
         'TotalIncome': [TotalIncome],
         'TotalDebt': [TotalDebt],
         'Installment': [Installment],
-        'CollateralFlag': [CollateralFlag],
+        'CollateralFlag': [1 if CollateralFlag == "Yes" else 0],
         'TenorLoan1': [TenorLoan1],
-        'Score': [Score]
+        'Score': [Score],
+        'FinalRiskLevel': [0 if FinalRiskLevel == "Low" else (1 if FinalRiskLevel == "Medium" else 2)]
     })
 
-    # Load data and train model
-    data = load_data()
-    model, accuracy = train_model(data)
+    # Load model
+    model = load_model()
 
     if st.button("Predict"):
         prediction = predict(model, input_data)
-        st.write(f"The predicted Final Risk Level is: {prediction[0]}")
-        st.write(f"Model Accuracy: {accuracy * 100:.2f}%")
+        st.write(f"The predicted Loan Status is: {prediction[0]}")
 
 if __name__ == "__main__":
     main()
