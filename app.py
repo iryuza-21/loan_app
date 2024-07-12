@@ -3,7 +3,7 @@ import streamlit as st
 
 # ฟังก์ชันในการโหลดไฟล์ classifier.pkl
 def load_classifier():
-    file_path = '/Users/ryu21/classifier.pkl'
+    file_path = 'classifier.pkl'
     with open(file_path, 'rb') as file:
         classifier = pickle.load(file)
     return classifier
